@@ -26,6 +26,18 @@ impl std::fmt::Display for ShellCommands {
     }
 }
 
+fn pase_command_type(command: &str) -> ShellCommandType {
+    // pase command
+    let mut input_command_type = ShellCommandType::Unknow;
+    for shell_command in ShellCommands::VALUES {
+        if shell_command.to_string().eq(command) {
+            input_command_type = ShellCommandType::Shell(shell_command);
+            break;
+        }
+    }
+    return input_command_type;
+}
+
 fn main() {
     loop {
         // Ask for user input
@@ -43,17 +55,8 @@ fn main() {
         let (command_part, args_part) = input.split_at(end_command_index);
         let args_part = args_part.trim();
 
-        // pase command
-        let mut input_command_type = ShellCommandType::Unknow;
-        for shell_command in ShellCommands::VALUES {
-            if shell_command.to_string().eq(command_part) {
-                input_command_type = ShellCommandType::Shell(shell_command);
-                break;
-            }
-        }
-
         // run command
-        match input_command_type {
+        match pase_command_type(command_part) {
             ShellCommandType::Shell(shell_command) => match shell_command {
                 ShellCommands::Exit => {
                     let is_args_emp = args_part.is_empty();
