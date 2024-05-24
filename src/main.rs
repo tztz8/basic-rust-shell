@@ -1,4 +1,4 @@
-use std::io::{self, Write};
+use std::io::Write;
 
 #[allow(dead_code)]
 enum ShellCommandType {
@@ -26,21 +26,23 @@ impl std::fmt::Display for ShellCommands {
 
 fn main() {
     loop {
+        // Ask for user input
         print!("$ ");
-        io::stdout().flush().unwrap();
+        std::io::stdout().flush().unwrap();
 
         // Wait for user input
-        let stdin = io::stdin();
+        let stdin = std::io::stdin();
         let mut input = String::new();
         stdin.read_line(&mut input).unwrap();
 
+        // parse user input to command and args
         let input = input.trim();
         let end_command_index = input.find(' ').unwrap_or(input.len());
         let (command_part, args_part) = input.split_at(end_command_index);
         let args_part = args_part.trim();
 
+        // pase command
         let mut input_command_type = ShellCommandType::Unknow;
-
         for shell_command in ShellCommands::VALUES {
             if shell_command.to_string().eq(command_part) {
                 input_command_type = ShellCommandType::Shell(shell_command);
@@ -48,6 +50,7 @@ fn main() {
             }
         }
 
+        // run command
         match input_command_type {
             ShellCommandType::Shell(shell_command) => match shell_command {
                 ShellCommands::Exit => {
