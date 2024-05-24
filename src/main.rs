@@ -11,10 +11,11 @@ enum ShellCommandType {
 enum ShellCommands {
     Exit,
     Echo,
+    Type,
 }
 
 impl ShellCommands {
-    const VALUES: [Self; 2] = [Self::Exit, Self::Echo];
+    const VALUES: [Self; 3] = [Self::Exit, Self::Echo, Self::Type];
 }
 
 impl std::fmt::Display for ShellCommands {
@@ -22,6 +23,7 @@ impl std::fmt::Display for ShellCommands {
         match self {
             ShellCommands::Exit => write!(f, "exit"),
             ShellCommands::Echo => write!(f, "echo"),
+            ShellCommands::Type => write!(f, "type"),
         }
     }
 }
@@ -35,7 +37,7 @@ fn pase_command_type(command: &str) -> ShellCommandType {
             break;
         }
     }
-    return input_command_type;
+    input_command_type
 }
 
 fn main() {
@@ -68,6 +70,20 @@ fn main() {
                 }
                 ShellCommands::Echo => {
                     println!("{}", args_part);
+                }
+                ShellCommands::Type => {
+                    let arg_command_type = pase_command_type(args_part);
+                    match arg_command_type {
+                        ShellCommandType::Unknow => {
+                            println!("{}: command not found", args_part);
+                        }
+                        ShellCommandType::Program => {
+                            todo!();
+                        }
+                        ShellCommandType::Shell(_) => {
+                            println!("{} is a shell builtin", args_part);
+                        }
+                    }
                 }
             },
             ShellCommandType::Unknow => {
