@@ -10,16 +10,18 @@ enum ShellCommandType {
 #[derive(Debug)]
 enum ShellCommands {
     Exit,
+    Echo,
 }
 
 impl ShellCommands {
-    const VALUES: [Self; 1] = [Self::Exit];
+    const VALUES: [Self; 2] = [Self::Exit, Self::Echo];
 }
 
 impl std::fmt::Display for ShellCommands {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ShellCommands::Exit => write!(f, "exit"),
+            ShellCommands::Echo => write!(f, "echo"),
         }
     }
 }
@@ -60,6 +62,9 @@ fn main() {
                         exit_code = 0;
                     }
                     std::process::exit(exit_code);
+                }
+                ShellCommands::Echo => {
+                    println!("{}", args_part);
                 }
             },
             ShellCommandType::Unknow => {
