@@ -75,7 +75,7 @@ fn main() {
                     let arg_command_type = pase_command_type(args_part);
                     match arg_command_type {
                         ShellCommandType::Unknow => {
-                            print!("{} not found\r\n", args_part);
+                            println!("{} not found", args_part);
                         }
                         ShellCommandType::Program => {
                             todo!();
@@ -93,5 +93,6 @@ fn main() {
                 todo!();
             }
         }
+        std::io::stdout().flush().unwrap();
     }
 }
