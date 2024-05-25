@@ -75,7 +75,7 @@ fn main() {
                     let arg_command_type = pase_command_type(args_part);
                     match arg_command_type {
                         ShellCommandType::Unknow => {
-                            println!("{} not found\\n", args_part);
+                            print!("{} not found\r\n", args_part);
                         }
                         ShellCommandType::Program => {
                             todo!();
