@@ -74,6 +74,43 @@ fn pase_command_type(paths: &Vec<&std::path::Path>, command: &str) -> ShellComma
     input_command_type
 }
 
+fn absolute_path(path: &std::path::Path) -> std::io::Result<std::path::PathBuf> {
+    let absolute_path = if path.is_absolute() {
+        path.to_path_buf()
+    } else {
+        std::env::current_dir()?.join(path)
+    };
+
+    let mut out = Vec::new();
+
+    use std::path::Component;
+
+    for comp in absolute_path.components() {
+        match comp {
+            Component::CurDir => (),
+            Component::ParentDir => match out.last() {
+                Some(Component::RootDir) => (),
+                Some(Component::Normal(_)) => {
+                    out.pop();
+                }
+                None
+                | Some(Component::CurDir)
+                | Some(Component::ParentDir)
+                | Some(Component::Prefix(_)) => out.push(comp),
+            },
+            comp => out.push(comp),
+        }
+    }
+
+    let clean_path = if !out.is_empty() {
+        out.iter().collect()
+    } else {
+        std::path::PathBuf::from(".")
+    };
+
+    Ok(clean_path)
+}
+
 fn main() {
     // path
     let env_path = std::env::var("PATH").unwrap_or(String::from(""));
@@ -120,7 +157,8 @@ fn main() {
                             println!("{}: not found", args_part);
                         }
                         ShellCommandType::Program(path) => {
-                            println!("{} is {}", args_part, path);
+                            let path = absolute_path(&(std::path::Path::new(&path))).unwrap();
+                            println!("{} is {}", args_part, path.to_str().unwrap());
                         }
                         ShellCommandType::Shell(_) => {
                             println!("{} is a shell builtin", args_part);
