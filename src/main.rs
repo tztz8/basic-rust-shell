@@ -37,6 +37,11 @@ fn pase_command_type(paths: &Vec<&std::path::Path>, command: &str) -> ShellComma
         }
     }
     if let ShellCommandType::Unknow = input_command_type {
+        if std::path::Path::new(command).exists() {
+            input_command_type = ShellCommandType::Program(String::from(command));
+        }
+    }
+    if let ShellCommandType::Unknow = input_command_type {
         for path in paths {
             match std::fs::read_dir(path) {
                 Ok(entries) => {
