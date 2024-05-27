@@ -43,30 +43,10 @@ fn pase_command_type(paths: &Vec<&std::path::Path>, command: &str) -> ShellComma
     }
     if let ShellCommandType::Unknow = input_command_type {
         for path in paths {
-            match std::fs::read_dir(path) {
-                Ok(entries) => {
-                    for entry in entries {
-                        match entry {
-                            Ok(entry) => {
-                                if entry.file_name().eq(command) {
-                                    input_command_type = ShellCommandType::Program(
-                                        entry.path().to_str().unwrap().into(),
-                                    );
-                                    break;
-                                }
-                            }
-                            Err(e) => {
-                                eprintln!("Path Command Pase - entries - Error: {}", e);
-                            }
-                        }
-                    }
-                }
-                Err(e) => {
-                    eprintln!("Path Command Pase - Read Dir - Error: {}", e);
-                }
-            }
-            if let ShellCommandType::Unknow = input_command_type {
-            } else {
+            let command_path = path.join(command);
+            if command_path.exists() {
+                input_command_type =
+                    ShellCommandType::Program(command_path.to_str().unwrap().into());
                 break;
             }
         }
