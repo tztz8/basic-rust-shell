@@ -45,10 +45,9 @@ fn pase_command_type(paths: &Vec<&std::path::Path>, command: &str) -> ShellComma
                             match entry {
                                 Ok(entry) => {
                                     if entry.file_name().eq(command) {
-                                        input_command_type = ShellCommandType::Program(format!(
-                                            "{:?}",
-                                            entry.path()
-                                        ));
+                                        input_command_type = ShellCommandType::Program(
+                                            entry.path().to_str().unwrap().into(),
+                                        );
                                         break;
                                     }
                                 }
