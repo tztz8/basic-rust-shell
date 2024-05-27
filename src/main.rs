@@ -36,40 +36,35 @@ fn pase_command_type(paths: &Vec<&std::path::Path>, command: &str) -> ShellComma
             break;
         }
     }
-    match input_command_type {
-        ShellCommandType::Unknow => {
-            for path in paths {
-                match std::fs::read_dir(path) {
-                    Ok(entries) => {
-                        for entry in entries {
-                            match entry {
-                                Ok(entry) => {
-                                    if entry.file_name().eq(command) {
-                                        input_command_type = ShellCommandType::Program(
-                                            entry.path().to_str().unwrap().into(),
-                                        );
-                                        break;
-                                    }
+    if let ShellCommandType::Unknow = input_command_type {
+        for path in paths {
+            match std::fs::read_dir(path) {
+                Ok(entries) => {
+                    for entry in entries {
+                        match entry {
+                            Ok(entry) => {
+                                if entry.file_name().eq(command) {
+                                    input_command_type = ShellCommandType::Program(
+                                        entry.path().to_str().unwrap().into(),
+                                    );
+                                    break;
                                 }
-                                Err(e) => {
-                                    eprintln!("Path Command Pase - entries - Error: {}", e);
-                                }
+                            }
+                            Err(e) => {
+                                eprintln!("Path Command Pase - entries - Error: {}", e);
                             }
                         }
                     }
-                    Err(e) => {
-                        eprintln!("Path Command Pase - Read Dir - Error: {}", e);
-                    }
                 }
-                match input_command_type {
-                    ShellCommandType::Unknow => {}
-                    _ => {
-                        break;
-                    }
+                Err(e) => {
+                    eprintln!("Path Command Pase - Read Dir - Error: {}", e);
                 }
             }
+            if let ShellCommandType::Unknow = input_command_type {
+            } else {
+                break;
+            }
         }
-        _ => {}
     }
     input_command_type
 }
