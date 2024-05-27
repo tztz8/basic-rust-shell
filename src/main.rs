@@ -127,7 +127,26 @@ fn main() {
                 println!("{}: command not found", command_part);
             }
             ShellCommandType::Program(path) => {
-                println!("{}", path);
+                let mut program = std::process::Command::new(path);
+                program.envs(std::env::vars());
+                if !args_part.is_empty() {
+                    program.arg(args_part);
+                }
+                let program = program.spawn();
+                if let Ok(mut program) = program {
+                    match program.wait() {
+                        Ok(exit_code) => {
+                            if !exit_code.success() {
+                                eprintln!("Exit Fail : {}", exit_code);
+                            }
+                        }
+                        Err(e) => {
+                            eprintln!("Program crash: {:?}", e);
+                        }
+                    }
+                } else {
+                    eprintln!("Program Fail to start: {:?}", program.err().unwrap());
+                }
             }
         }
         std::io::stdout().flush().unwrap();
