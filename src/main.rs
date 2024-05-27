@@ -1,9 +1,8 @@
 use std::io::Write;
 
-#[allow(dead_code)]
 enum ShellCommandType {
     Shell(ShellCommands),
-    Program,
+    Program(String),
     Unknow,
 }
 
@@ -28,7 +27,7 @@ impl std::fmt::Display for ShellCommands {
     }
 }
 
-fn pase_command_type(command: &str) -> ShellCommandType {
+fn pase_command_type(paths: &Vec<&std::path::Path>, command: &str) -> ShellCommandType {
     // pase command
     let mut input_command_type = ShellCommandType::Unknow;
     for shell_command in ShellCommands::VALUES {
@@ -37,10 +36,54 @@ fn pase_command_type(command: &str) -> ShellCommandType {
             break;
         }
     }
+    match input_command_type {
+        ShellCommandType::Unknow => {
+            for path in paths {
+                match std::fs::read_dir(path) {
+                    Ok(entries) => {
+                        for entry in entries {
+                            match entry {
+                                Ok(entry) => {
+                                    if entry.file_name().eq(command) {
+                                        input_command_type = ShellCommandType::Program(format!(
+                                            "{:?}",
+                                            entry.path()
+                                        ));
+                                        break;
+                                    }
+                                }
+                                Err(e) => {
+                                    eprintln!("Path Command Pase - entries - Error: {}", e);
+                                }
+                            }
+                        }
+                    }
+                    Err(e) => {
+                        eprintln!("Path Command Pase - Read Dir - Error: {}", e);
+                    }
+                }
+                match input_command_type {
+                    ShellCommandType::Unknow => {}
+                    _ => {
+                        break;
+                    }
+                }
+            }
+        }
+        _ => {}
+    }
     input_command_type
 }
 
 fn main() {
+    // path
+    let env_path = std::env::var("PATH").unwrap_or(String::from(""));
+    let paths_str = env_path.split(':');
+    let mut paths = Vec::new();
+    for path_str in paths_str {
+        paths.push(std::path::Path::new(path_str));
+    }
+    let paths = paths;
     loop {
         // Ask for user input
         print!("$ ");
@@ -58,7 +101,7 @@ fn main() {
         let args_part = args_part.trim();
 
         // run command
-        match pase_command_type(command_part) {
+        match pase_command_type(&paths, command_part) {
             ShellCommandType::Shell(shell_command) => match shell_command {
                 ShellCommands::Exit => {
                     let is_args_emp = args_part.is_empty();
@@ -72,13 +115,13 @@ fn main() {
                     println!("{}", args_part);
                 }
                 ShellCommands::Type => {
-                    let arg_command_type = pase_command_type(args_part);
+                    let arg_command_type = pase_command_type(&paths, args_part);
                     match arg_command_type {
                         ShellCommandType::Unknow => {
                             println!("{}: not found", args_part);
                         }
-                        ShellCommandType::Program => {
-                            todo!();
+                        ShellCommandType::Program(path) => {
+                            println!("{} is {}", args_part, path);
                         }
                         ShellCommandType::Shell(_) => {
                             println!("{} is a shell builtin", args_part);
@@ -89,8 +132,8 @@ fn main() {
             ShellCommandType::Unknow => {
                 println!("{}: command not found", command_part);
             }
-            ShellCommandType::Program => {
-                todo!();
+            ShellCommandType::Program(path) => {
+                println!("{}", path);
             }
         }
         std::io::stdout().flush().unwrap();
