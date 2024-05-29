@@ -12,14 +12,16 @@ enum ShellCommands {
     Echo,
     Type,
     PrintWorkingDirectory,
+    ChangeDirectory,
 }
 
 impl ShellCommands {
-    const VALUES: [Self; 4] = [
+    const VALUES: [Self; 5] = [
         Self::Exit,
         Self::Echo,
         Self::Type,
         Self::PrintWorkingDirectory,
+        Self::ChangeDirectory,
     ];
 }
 
@@ -30,6 +32,7 @@ impl std::fmt::Display for ShellCommands {
             ShellCommands::Echo => write!(f, "echo"),
             ShellCommands::Type => write!(f, "type"),
             ShellCommands::PrintWorkingDirectory => write!(f, "pwd"),
+            ShellCommands::ChangeDirectory => write!(f, "cd"),
         }
     }
 }
@@ -153,7 +156,34 @@ fn main() {
                     }
                 }
                 ShellCommands::PrintWorkingDirectory => {
-                    println!("{}", std::env::current_dir().unwrap().to_str().unwrap());
+                    let current_dir = std::env::current_dir();
+                    if current_dir.is_err() {
+                        eprintln!("Can't get current working directory: {:?}", current_dir.unwrap_err());
+                    } else {
+                        let current_dir = current_dir.unwrap();
+                        println!("{}", current_dir.to_str().unwrap_or("UNKNOWN"));
+                    }
+                }
+                ShellCommands::ChangeDirectory => {
+                    let mut path = std::path::PathBuf::new();
+                    path.push(args_part);
+                    // may need to be joined to working dir
+                    if !path.exists() {
+                        path = std::env::current_dir().unwrap().join(args_part);
+                    }
+                    // exist
+                    if !path.exists() {
+                        eprintln!("cd: {}: No such file or directory", path.to_str().unwrap());
+                    } else {
+                        // update path
+                        let update_working_dir_result = std::env::set_current_dir(path);
+                        if update_working_dir_result.is_err() {
+                            eprintln!(
+                                "Error on changing directory : {:?}",
+                                update_working_dir_result.err().unwrap()
+                            );
+                        }
+                    }
                 }
             },
             ShellCommandType::Unknow => {
