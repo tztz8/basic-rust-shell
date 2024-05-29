@@ -102,8 +102,10 @@ fn parse_command_type(paths: &Vec<&std::path::Path>, command: &str) -> ShellComm
     }
     // is relative/absolute program command?
     if let ShellCommandType::Unknown = input_command_type {
-        if std::path::Path::new(command).exists() {
-            input_command_type = ShellCommandType::Program(String::from(command));
+        // is home relative program command?
+        let command = home_folder_path(command);
+        if std::path::Path::new(command.as_str()).exists() {
+            input_command_type = ShellCommandType::Program(command);
         }
     }
     // is path program command?
@@ -120,6 +122,10 @@ fn parse_command_type(paths: &Vec<&std::path::Path>, command: &str) -> ShellComm
     // return type
     input_command_type
 }
+
+// ################
+// # Path Helpers #
+// ################
 
 /// # absolute path
 ///
@@ -166,6 +172,27 @@ fn absolute_path(path: &std::path::Path) -> std::io::Result<std::path::PathBuf> 
     Ok(clean_path)
 }
 
+/// # Update path string
+///
+/// if path string starts with ~ it is replaced with home folder, otherwise return what given
+fn home_folder_path(path: &str) -> String {
+    if path.starts_with('~') {
+        let mut new_path = String::from(path);
+        new_path.remove(0);
+        if let Ok(home_path) = std::env::var("HOME") {
+            new_path.insert_str(0, home_path.as_str());
+        } else {
+            eprintln!("Env Missing Home folder");
+        }
+        return new_path;
+    }
+    return String::from(path);
+}
+
+// #################
+// # Shell Helpers #
+// #################
+
 /// # Shell run program
 ///
 /// Run the external program and hand any problems.
@@ -195,12 +222,13 @@ fn shell_run_program(path: String, args_part: &str) {
 /// # Shell Change Directory Command
 ///
 /// Change the current working directory of this program (shell)
-fn shell_cd_command(args_part: &str) {
+fn shell_cd_command(path_str: &str) {
+    let path_str = home_folder_path(path_str);
     let mut path = std::path::PathBuf::new();
-    path.push(args_part);
+    path.push(path_str.as_str());
     // may need to be joined to working dir
     if !path.exists() {
-        path = std::env::current_dir().unwrap().join(args_part);
+        path = std::env::current_dir().unwrap().join(path_str.as_str());
     }
     // exist
     if !path.exists() {
