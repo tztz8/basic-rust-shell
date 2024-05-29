@@ -11,10 +11,16 @@ enum ShellCommands {
     Exit,
     Echo,
     Type,
+    PrintWorkingDirectory,
 }
 
 impl ShellCommands {
-    const VALUES: [Self; 3] = [Self::Exit, Self::Echo, Self::Type];
+    const VALUES: [Self; 4] = [
+        Self::Exit,
+        Self::Echo,
+        Self::Type,
+        Self::PrintWorkingDirectory,
+    ];
 }
 
 impl std::fmt::Display for ShellCommands {
@@ -23,6 +29,7 @@ impl std::fmt::Display for ShellCommands {
             ShellCommands::Exit => write!(f, "exit"),
             ShellCommands::Echo => write!(f, "echo"),
             ShellCommands::Type => write!(f, "type"),
+            ShellCommands::PrintWorkingDirectory => write!(f, "pwd"),
         }
     }
 }
@@ -144,6 +151,9 @@ fn main() {
                             println!("{} is a shell builtin", args_part);
                         }
                     }
+                }
+                ShellCommands::PrintWorkingDirectory => {
+                    println!("{}", std::env::current_dir().unwrap().to_str().unwrap());
                 }
             },
             ShellCommandType::Unknow => {
